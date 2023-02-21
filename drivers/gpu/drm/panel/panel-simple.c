@@ -4117,6 +4117,37 @@ static const struct panel_desc_dsi auo_g070vw01v0 = {
     .lanes = 4,
 };
 
+// start modify by ITRI
+static const struct drm_display_mode auo_g070vat01v0_mode = {
+    .clock = 33000,
+    .hdisplay = 800,
+    .hsync_start = 800 + 40,
+    .hsync_end = 800 + 40 + 88,
+    .htotal = 800 + 40 + 88 + 102,
+    .vdisplay = 480,
+    .vsync_start = 480 + 10,
+    .vsync_end = 480 + 10 + 2,
+    .vtotal = 480 + 10 + 2 + 6,
+    .vrefresh = 60,
+};
+
+static const struct panel_desc_dsi auo_g070vat01v0 = {
+    .desc = {
+        .modes = &auo_g070vat01v0_mode,
+        .num_modes = 1,
+        .bpc = 8,
+        .size = {
+            .width = 200,
+         .height = 125,
+        },
+        .bus_format = MEDIA_BUS_FMT_RGB888_1X24,
+    },
+    .flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_BURST | MIPI_DSI_MODE_LPM | MIPI_DSI_MODE_EOT_PACKET,
+    .format = MIPI_DSI_FMT_RGB888,
+    .lanes = 4,
+};
+// end modify by ITRI
+
 static const struct drm_display_mode auo_g150xgel05_mode = {
     .clock = 63500,
     .hdisplay = 1024,
@@ -4367,6 +4398,9 @@ static const struct of_device_id dsi_of_match[] = {
 	{
 		.compatible = "auo,g070vw01v0",
 		.data = &auo_g070vw01v0
+	}, {
+		.compatible = "auo,g070vat01v0",
+		.data = &auo_g070vat01v0
 	}, {
 		.compatible = "auo,g150xgel05",
 		.data = &auo_g150xgel05

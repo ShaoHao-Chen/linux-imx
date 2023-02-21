@@ -584,6 +584,13 @@
 		assigned-clock-rates = <24576000>;
 	};
 
+	ngsi@20 {
+		compatible = "itri,ngsi";
+                reg = <0x20>;
+		interrupt-parent = <&gpio5>;
+		interrupts = <3 IRQ_TYPE_EDGE_RISING>;
+	};
+
 	24c32@57 {				//DB5901-U19
                 compatible = "fsl,24c32";
                 reg = <0x57>;
@@ -710,12 +717,20 @@
 		>;
 	};
 
+	pinctrl_ngsi: ngsiirq {
+		fsl,pins = <
+			MX8MM_IOMUXC_SPDIF_TX_GPIO5_IO3			0x41		/* NGSI_IRQ*/
+		>;
+	};
+
 	pinctrl_i2c4_gpio: i2c4_gpio_grp {
 		fsl,pins = <
 			MX8MM_IOMUXC_I2C4_SCL_GPIO5_IO20		0x19
 			MX8MM_IOMUXC_I2C4_SDA_GPIO5_IO21		0x19
 		>;
 	};
+
+
 	
 	pinctrl_mipi_dsi_en: mipi_dsi_en {
 		fsl,pins = <
@@ -1083,7 +1098,7 @@
 &mipi_dsi {
         status = "okay";
         panel@0 {
-                compatible = "auo,g070vw01v0";
+                compatible = "auo,g070vat01v0";
                 reg = <0>;
                 backlight=<&lvds_backlight0>;
                 no-wakeup-init;
@@ -1145,44 +1160,50 @@
         cs-gpios = <&gpio5 13 0>, <&gpio3 21 0>;
         pinctrl-names = "default";
         pinctrl-0 = <&pinctrl_ecspi2>;
+	fsl,spi-num-chipselects = <2>;
         status = "okay";
 
-        flash0: m25p80@0 {
-                #address-cells = <1>;
-                #size-cells = <0>;
-                compatible = "micron,n25qba16";
-                spi-max-frequency = <20000000>;
-                reg = <0>;
-        };
-        flash1: m25p80@1 {
-                #address-cells = <1>;
-                #size-cells = <0>;
-                compatible = "micron,n25qba16";
-                spi-max-frequency = <20000000>;
-                reg = <1>;
-        };
+	spidev@0 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "microchip,mcp3204";
+		spi-max-frequency = <20000000>;
+		reg = <0>;
+		status = "okay";
+	};
+	spidev@1 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "rohm,dh2228fv";
+		spi-max-frequency = <20000000>;
+		reg = <1>;
+		status = "okay";
+	};
 };
 
 &ecspi3 {
         cs-gpios = <&gpio5 25 0>, <&gpio3 22 0>;
         pinctrl-names = "default";
         pinctrl-0 = <&pinctrl_ecspi3>;
+	fsl,spi-num-chipselects = <2>;
         status = "okay";
 
-        flash2: m25p80@0 {
-                #address-cells = <1>;
-                #size-cells = <0>;
-                compatible = "micron,n25qba16";
-                spi-max-frequency = <20000000>;
-                reg = <0>;
-        };
-        flash3: m25p80@1 {
-                #address-cells = <1>;
-                #size-cells = <0>;
-                compatible = "micron,n25qba16";
-                spi-max-frequency = <20000000>;
-                reg = <1>;
-        };
+        spidev@0 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "rohm,dh2228fv";
+		spi-max-frequency = <20000000>;
+		reg = <0>;
+		status = "okay";
+	};
+	spidev@1 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "microchip,mcp3204";
+		spi-max-frequency = <20000000>;
+		reg = <1>;
+		status = "okay";
+	};
 };
 
 &pwm2 {
