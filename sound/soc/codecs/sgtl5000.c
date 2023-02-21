@@ -29,6 +29,9 @@
 #include "sgtl5000.h"
 #include <linux/of_gpio.h>
 
+#define CODEC_INFO_DISPLAY 	// printk info
+#define FORCE_NOT_USING_PLL	//uncomment for 22579200/44100 mode, comment for using PLL;
+
 #define SGTL5000_DAP_REG_OFFSET	0x0100
 #define SGTL5000_MAX_REG_OFFSET	0x013A
 
@@ -746,9 +749,9 @@ static const struct snd_kcontrol_new sgtl5000_snd_controls[] = {
 			SGTL5000_LINE_OUT_VOL_RIGHT_SHIFT,
 			0x1f, 1,
 			lineout_volume),
-#ifndef CONFIG_ARCH_ADVANTECH
+//#ifndef CONFIG_ARCH_ADVANTECH
 	SOC_SINGLE("Lineout Playback Switch", SGTL5000_CHIP_ANA_CTRL, 8, 1, 1),
-#endif
+//#endif
 
 	SOC_SINGLE_TLV("DAP Main channel", SGTL5000_DAP_MAIN_CHAN,
 	0, 0xffff, 0, dap_volume),
@@ -902,6 +905,9 @@ static int sgtl5000_set_clock(struct snd_soc_component *component, int frame_rat
 	int clk_ctl = 0;
 	int sys_fs;	/* sample freq */
 
+#ifdef CODEC_INFO_DISPLAY
+	printk("%s enter! frame_rate:%d\n", __func__, frame_rate);
+#endif
 	/*
 	 * sample freq should be divided by frame clock,
 	 * if frame clock is lower than 44.1 kHz, sample freq should be set to
@@ -922,7 +928,11 @@ static int sgtl5000_set_clock(struct snd_soc_component *component, int frame_rat
 	}
 
 	/* set divided factor of frame clock */
-	switch (sys_fs / frame_rate) {
+#ifdef CODEC_INFO_DISPLAY
+	printk("sys_fs / frame_rate:%d \n", (sys_fs/frame_rate));
+#endif
+
+        switch (sys_fs / frame_rate){
 	case 4:
 		clk_ctl |= SGTL5000_RATE_MODE_DIV_4 << SGTL5000_RATE_MODE_SHIFT;
 		break;
@@ -935,7 +945,9 @@ static int sgtl5000_set_clock(struct snd_soc_component *component, int frame_rat
 	default:
 		return -EINVAL;
 	}
-
+#ifdef CODEC_INFO_DISPLAY
+	printk("sys_fs:%d \n", sys_fs);
+#endif
 	/* set the sys_fs according to frame rate */
 	switch (sys_fs) {
 	case 32000:
@@ -961,8 +973,19 @@ static int sgtl5000_set_clock(struct snd_soc_component *component, int frame_rat
 	 * factor of freq = 96 kHz can only be 256, since mclk is in the range
 	 * of 8 MHz - 27 MHz
 	 */
+
+#ifdef CODEC_INFO_DISPLAY
+	printk("sysclk:%d\n", sgtl5000->sysclk);
+#endif
+#ifdef FORCE_NOT_USING_PLL
 	switch (sgtl5000->sysclk / frame_rate) {
+#else
+	switch (22579200 / frame_rate) {
+#endif
 	case 256:
+#ifdef CODEC_INFO_DISPLAY
+		printk("sgtl5000->sysclk / frame_rate == 256 \n");
+#endif
 		clk_ctl |= SGTL5000_MCLK_FREQ_256FS <<
 			SGTL5000_MCLK_FREQ_SHIFT;
 		break;
@@ -971,6 +994,9 @@ static int sgtl5000_set_clock(struct snd_soc_component *component, int frame_rat
 			SGTL5000_MCLK_FREQ_SHIFT;
 		break;
 	case 512:
+#ifdef CODEC_INFO_DISPLAY
+		printk("sysclk / frame_rate == 512 \n");
+#endif
 		clk_ctl |= SGTL5000_MCLK_FREQ_512FS <<
 			SGTL5000_MCLK_FREQ_SHIFT;
 		break;
@@ -989,6 +1015,9 @@ static int sgtl5000_set_clock(struct snd_soc_component *component, int frame_rat
 		}
 	}
 
+#ifdef CODEC_INFO_DISPLAY
+	printk("clk_ctl:%x \n", clk_ctl);
+#endif
 	/* if using pll, please check manual 6.4.2 for detail */
 	if ((clk_ctl & SGTL5000_MCLK_FREQ_MASK) == SGTL5000_MCLK_FREQ_PLL) {
 		u64 out, t;
@@ -1034,9 +1063,15 @@ static int sgtl5000_set_clock(struct snd_soc_component *component, int frame_rat
 
 		/* if using pll, clk_ctrl must be set after pll power up */
 		snd_soc_component_write(component, SGTL5000_CHIP_CLK_CTRL, clk_ctl);
+#ifdef CODEC_INFO_DISPLAY
+		printk("PLL:%d\n", clk_ctl);
+#endif
 	} else {
 		/* otherwise, clk_ctrl must be set before pll power down */
 		snd_soc_component_write(component, SGTL5000_CHIP_CLK_CTRL, clk_ctl);
+#ifdef CODEC_INFO_DISPLAY
+		printk("no PLL:%d\n", clk_ctl);
+#endif
 
 		/* power down pll */
 		snd_soc_component_update_bits(component, SGTL5000_CHIP_ANA_POWER,

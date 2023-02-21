@@ -129,7 +129,8 @@
                 audio-routing =
                         "MIC_IN", "Mic Jack",
                         "Mic Jack", "Mic Bias",
-                        "Headphone Jack", "HP_OUT";
+                        "Headphone Jack", "HP_OUT",
+			"Line Out Jack", "LINE_OUT";
                 no-audmux;
         };
 };
